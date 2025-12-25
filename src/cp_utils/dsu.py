@@ -165,7 +165,7 @@ class UnionFind(UnionFindBase, Generic[T]):
 
     def copy(self) -> "UnionFind[T]":
         """Get a deepcopy of the DSU."""
-        copy_dsu: UnionFind[T] = UnionFind([])
+        copy_dsu: UnionFind[T] = object.__new__(UnionFind)
         copy_dsu.parent = deepcopy(self.parent)
         copy_dsu.rank = deepcopy(self.rank)
 
