@@ -1,24 +1,29 @@
+from abc import ABC, abstractmethod
 from collections import defaultdict
 from copy import deepcopy
-from typing import Generic, TypeVar
+from typing import Generic, Iterable, TypeVar
 
 T = TypeVar("T")
 
 
-class DynamicUnionFind(Generic[T]):
-    """Dynamic Union Find (Disjoint Set Union) data structure implementation."""
+class UnionFindBase(ABC, Generic[T]):
+    """Base class for Disjoint Set Union."""
 
-    def __init__(self, data: dict[T, T] | None = None):
+    def __init__(self):
         self.parent: dict[T, T] = {}
         self.rank: dict[T, int] = defaultdict(int)
 
-        if data is not None:
-            self._parse(data=data)
+    @abstractmethod
+    def find(self, x: T) -> T:
+        """Find the root representative of the set containing `x`.
 
-    def _parse(self, data: dict[T, T]) -> None:
-        """Parse the given data."""
-        for k, v in data.items():
-            self.union(x=k, y=v)
+        Args:
+            x (T): Element to find the root of.
+
+        Returns:
+            T: The found root representative.
+        """
+        raise NotImplementedError
 
     def __len__(self) -> int:
         """Return the number of sets."""
@@ -34,31 +39,6 @@ class DynamicUnionFind(Generic[T]):
             True if element has been seen before, False otherwise.
         """
         return x in self.parent
-
-    def __repr__(self) -> str:
-        """String representation of the Union-Find structure.
-
-        Returns:
-            String showing number of elements and components.
-        """
-        return f"DynamicUnionFind(elements={len(self)})"
-
-    def find(self, x: T) -> T:
-        """Find the root representative of the set containing `x`.
-
-        Args:
-            x (T): Element to find the root of.
-
-        Returns:
-            T: The found root representative.
-        """
-        if x not in self.parent:
-            self.parent[x] = x
-
-        if self.parent[x] != x:
-            self.parent[x] = self.find(self.parent[x])
-
-        return self.parent[x]
 
     def union(self, x: T, y: T) -> bool:
         """Merge set containing `x` with set containing `y`.
@@ -141,9 +121,100 @@ class DynamicUnionFind(Generic[T]):
         """Clear the DSU."""
         self.parent.clear()
 
+    def copy(self):
+        """Get a deepcopy of the DSU."""
+        raise NotImplementedError
+
+
+class UnionFind(UnionFindBase, Generic[T]):
+    """Standard Union-Find implementation. Requires pre-initialisation."""
+
+    def __init__(self, data: Iterable[T]):
+        super().__init__()
+        self._parse(data=data)
+
+    def _parse(self, data: Iterable[T]) -> None:
+        """Parse the given data."""
+        for element in data:
+            self.parent[element] = element
+
+    def __repr__(self) -> str:
+        """String representation of the Union-Find structure.
+
+        Returns:
+            String showing number of elements and components.
+        """
+        return f"UnionFind(elements={len(self)})"
+
+    def find(self, x: T) -> T:
+        """Find the root representative of the set containing `x`.
+
+        Args:
+            x (T): Element to find the root of.
+
+        Returns:
+            T: The found root representative.
+        """
+        if x not in self.parent:
+            raise KeyError(f"Element `{x}` not initialised.")
+
+        if self.parent[x] != x:
+            self.parent[x] = self.find(self.parent[x])
+
+        return self.parent[x]
+
+    def copy(self) -> "UnionFind[T]":
+        """Get a deepcopy of the DSU."""
+        copy_dsu: UnionFind[T] = UnionFind([])
+        copy_dsu.parent = deepcopy(self.parent)
+        copy_dsu.rank = deepcopy(self.rank)
+
+        return copy_dsu
+
+
+class DynamicUnionFind(UnionFindBase, Generic[T]):
+    """Dynamic Union Find (Disjoint Set Union) data structure implementation."""
+
+    def __init__(self, data: dict[T, T] | None = None):
+        super().__init__()
+
+        if data is not None:
+            self._parse(data=data)
+
+    def _parse(self, data: dict[T, T]) -> None:
+        """Parse the given data."""
+        for k, v in data.items():
+            self.union(x=k, y=v)
+
+    def __repr__(self) -> str:
+        """String representation of the Union-Find structure.
+
+        Returns:
+            String showing number of elements and components.
+        """
+        return f"DynamicUnionFind(elements={len(self)})"
+
+    def find(self, x: T) -> T:
+        """Find the root representative of the set containing `x`. Adds `x` if it does not exist.
+
+        Args:
+            x (T): Element to find the root of.
+
+        Returns:
+            T: The found root representative.
+        """
+        if x not in self.parent:
+            self.parent[x] = x
+
+        if self.parent[x] != x:
+            self.parent[x] = self.find(self.parent[x])
+
+        return self.parent[x]
+
     def copy(self) -> "DynamicUnionFind[T]":
         """Get a deepcopy of the DSU."""
         copy_dsu: DynamicUnionFind[T] = DynamicUnionFind()
         copy_dsu.parent = deepcopy(self.parent)
+        copy_dsu.rank = deepcopy(self.rank)
 
         return copy_dsu
