@@ -4,44 +4,44 @@ version = "0.1.0"
 description = "Set of personal utility functions for competitive programming."
 readme = "README.md"
 requires-python = ">=3.10,<4"
-dependencies = [ "hatchling>=1.28.0" ]
+dependencies = ["hatchling>=1.28.0"]
 
 [dependency-groups]
 dev = [
-  "pre-commit>=4.5.1",
-  "pre-commit-uv>=4.2.0",
-  "pyright>=1.1.407",
-  "pytest>=9.0.2",
-  "pytest-sugar>=1.1.1",
-  "ruff>=0.14.10",
-  "tox>=4.32.0",
-  "tox-uv>=1.29.0"
+    "pre-commit>=4.5.1",
+    "pre-commit-uv>=4.2.0",
+    "pyright>=1.1.407",
+    "pytest>=9.0.2",
+    "pytest-sugar>=1.1.1",
+    "ruff>=0.14.10",
+    "tox>=4.32.0",
+    "tox-uv>=1.29.0"
 ]
 
 [build-system]
-requires = [ "hatchling" ]
+requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = [ "src" ]
+packages = ["src"]
 
 [tool.ruff]
 line-length = 120
 
-  [tool.ruff.lint]
-  select = [ "D", "I", "F", "E", "W", "Q" ]
-  fixable = [ "ALL" ]
-  ignore = [ "D100", "D104", "D105", "D107", "D205" ]
+[tool.ruff.lint]
+select = ["D", "I", "F", "E", "W", "Q"]
+fixable = ["ALL"]
+ignore = ["D100", "D104", "D105", "D107", "D205"]
 
-    [tool.ruff.lint.pydocstyle]
-    convention = "google"
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
-  [tool.ruff.format]
-  docstring-code-line-length = "dynamic"
-  docstring-code-format = true
+[tool.ruff.format]
+docstring-code-line-length = "dynamic"
+docstring-code-format = true
 
 [tool.pyright]
-include = [ "src" ]
+include = ["src"]
 reportMissingImports = "warning"
 reportMissingTypeStubs = true
 strictListInference = true
@@ -55,5 +55,9 @@ enableReachabilityAnalysis = true
 enableExperimentalFeatures = false
 disableBytesTypePromotions = true
 
-  [tool.pyright.defineConstant]
-  DEBUG = true
+[tool.pyright.defineConstant]
+DEBUG = true
+
+[tool.pytest]
+testpaths = ["tests"]
+pythonpath = ["src"]
