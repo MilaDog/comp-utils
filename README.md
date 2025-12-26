@@ -226,6 +226,10 @@ print(complex_grid.find(4))  # None
 print(complex_grid.find_all(4))  # []
 ```
 
+### Files
+
+Simple collection of handling files. main two functions are to `extract_ints` and `extract_floats`.
+
 ## Contributing
 
 Feel free to add more utilities following the same documentation format.
