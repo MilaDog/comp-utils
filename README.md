@@ -1,5 +1,12 @@
 # Competitive Programming Utilities
 
+![Package Version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2FMilaDog%2Fcomp-utils%2Frefs%2Fheads%2Fmain%2Fpyproject.toml&query=%24.project.version&label=version)
+![Python Versions](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2FMilaDog%2Fcomp-utils%2Frefs%2Fheads%2Fmain%2Fpyproject.toml&query=%24.project.requires-python&label=requires)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Checked with pyright](https://microsoft.github.io/pyright/img/pyright_badge.svg)](https://microsoft.github.io/pyright/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/MilaDog/comp-utils/blob/main/LICENSE)
+
 This repo serves as a collection of useful utility functions for competitive programming, as well as other generic
 DSAs.
 
