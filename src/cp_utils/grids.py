@@ -56,19 +56,19 @@ class Grid(Generic[T]):
         return iter(self._data)
 
     @classmethod
-    def parse(cls, grid: str, delim: str = " ", converter: Callable[[str], T] | None = None) -> Self:
+    def parse(cls, grid: str, delim: str | None = None, converter: Callable[[str], T] | None = None) -> Self:
         """Parse and return the grid.
 
         Args:
             grid (str): Content to parse.
-            delim (str): Delimiter to split on.
+            delim (str | None): Delimiter to split on. Not provided splits on each character.
             converter (Callable[[str], T]): Convert the content into a desired type.
 
         Returns:
             list[list[T]]: Parsed grid.
         """
         content: list[str] = grid.strip().splitlines()
-        data: list[list[str]] = [line.split(delim) for line in content]
+        data: list[list[str]] = [line.split(delim) if delim is not None else list(line) for line in content]
 
         if converter is not None:
             return cls(data=[[converter(cell) for cell in row] for row in data])  # type: ignore[arg-type]
@@ -76,19 +76,19 @@ class Grid(Generic[T]):
         return cls(data=data)  # type: ignore[arg-type]
 
     @classmethod
-    def parse_file(cls, file: str, delim: str = " ", converter: Callable[[str], T] | None = None) -> Self:
+    def parse_file(cls, file: str, delim: str | None = None, converter: Callable[[str], T] | None = None) -> Self:
         """Parse file and return the grid.
 
         Args:
             file (str): File to parse.
-            delim (str): Delimiter to split on.
+            delim (str | None): Delimiter to split on. Not provided splits on each character.
             converter (Callable[[str], T]): Convert the content into a desired type.
 
         Returns:
             list[list[str]]: Parsed grid.
         """
         content: list[str] = open(file, "r").read().strip().splitlines()
-        data: list[list[str]] = [line.split(delim) for line in content]
+        data: list[list[str]] = [line.split(delim) if delim is not None else list(line) for line in content]
 
         if converter is not None:
             return cls(data=[[converter(cell) for cell in row] for row in data])  # type: ignore[arg-type]
@@ -421,12 +421,12 @@ class ComplexGrid(Generic[T]):
         return iter(self._data)
 
     @classmethod
-    def parse(cls, grid: str, delim: str = " ", converter: Callable[[str], T] | None = None) -> Self:
+    def parse(cls, grid: str, delim: str | None = None, converter: Callable[[str], T] | None = None) -> Self:
         """Parse and return the grid.
 
         Args:
             grid (str): Content to parse.
-            delim (str): Delimiter to split on.
+            delim (str | None): Delimiter to split on. Not provided splits on each character.
             converter (Callable[[str], T]): Convert the content into a desired type.
 
         Returns:
@@ -435,7 +435,7 @@ class ComplexGrid(Generic[T]):
         res: dict[complex, str] = {}
 
         for x, row in enumerate(grid.strip().splitlines()):
-            for y, cell in enumerate(row.strip().split(delim)):
+            for y, cell in enumerate(row.strip().split(delim) if delim is not None else row.strip()):
                 res[complex(x, y)] = cell
 
         if converter is not None:
@@ -444,12 +444,12 @@ class ComplexGrid(Generic[T]):
         return cls(data=res)  # type: ignore[arg-type]
 
     @classmethod
-    def parse_file(cls, file: str, delim: str = " ", converter: Callable[[str], T] | None = None) -> Self:
+    def parse_file(cls, file: str, delim: str | None = None, converter: Callable[[str], T] | None = None) -> Self:
         """Parse file and return the grid.
 
         Args:
             file (str): File to parse.
-            delim (str): Delimiter to split on.
+            delim (str | None): Delimiter to split on. Not provided splits on each character.
             converter (Callable[[str], T]): Convert the content into a desired type.
 
         Returns:
@@ -459,7 +459,7 @@ class ComplexGrid(Generic[T]):
 
         with open(file, "r") as f:
             for x, row in enumerate(f.read().strip().splitlines()):
-                for y, cell in enumerate(row.strip().split(delim)):
+                for y, cell in enumerate(row.strip().split(delim) if delim is not None else row.strip()):
                     res[complex(x, y)] = cell
 
         if converter is not None:
