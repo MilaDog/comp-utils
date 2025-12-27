@@ -88,4 +88,4 @@ def test_complex_grid_find(complex_grid: ComplexGrid[str]) -> None:
 def test_complex_grid_find_all(complex_grid: ComplexGrid[str]) -> None:
     """Test finding all occurrences of an element in the ComplexGrid."""
     assert set(complex_grid.find_all("2")) == {complex(0, 1), complex(1, 1)}
-    assert complex_grid.find_all("4") == []
+    assert list(complex_grid.find_all("4")) == []

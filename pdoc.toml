@@ -1,0 +1,25 @@
+[project]
+name = "cp-utils"
+description = "Competitive programming utilities and data structures."
+
+[output]
+directory = "docs"
+format = "html"
+clean = true
+
+[render]
+docformat = "google"
+show_source = true
+show_signature_annotations = true
+show_type_annotations = true
+sort_identifiers = true
+
+[filter]
+exclude = [
+    "^_.*",
+]
+
+[modules]
+modules = [
+    "src.cp_utils"
+]

@@ -107,8 +107,8 @@ def test_grid_finding(grid: Grid[str]) -> None:
     assert grid.find("1") == (0, 0)
     assert grid.find("4") is None
 
-    assert grid.find_all("1") == [(0, 0), (1, 0)]
-    assert grid.find_all("4") == []
+    assert list(grid.find_all("1")) == [(0, 0), (1, 0)]
+    assert list(grid.find_all("4")) == []
 
 
 def test_grid_get_neighbours_no_diagonals(grid: Grid[str]) -> None:

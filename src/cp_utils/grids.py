@@ -1,5 +1,6 @@
+from collections.abc import Callable, Iterable, Iterator
 from copy import deepcopy
-from typing import Any, Callable, Generic, Iterator, Self, TypeVar, overload
+from typing import Any, Generic, TypeVar, overload
 
 T = TypeVar("T")
 U = TypeVar("U")
@@ -10,14 +11,16 @@ class Grid(Generic[T]):
 
     def __init__(self, data: list[list[T]]):
         self._data: list[list[T]] = data
+        self.height: int = len(self._data)
+        self.width: int = len(self._data[0]) if self.height != 0 else 0
 
     def __repr__(self) -> str:
         """String representation of grid."""
-        return f"Grid[height={len(self._data)}, width={len(self._data[0]) if self._data else 0}]"
+        return f"Grid[height={self.height}, width={self.width}]"
 
     def __str__(self) -> str:
         """Pretty print the grid."""
-        return "\n".join("".join(str(row)) for row in self._data)
+        return "\n".join("".join(str(cell) for cell in row) for row in self._data)
 
     def __getitem__(self, key: tuple[int, int]) -> T:
         """Access grid element.
@@ -48,7 +51,7 @@ class Grid(Generic[T]):
         return len(self._data)
 
     def __iter__(self) -> Iterator[list[T]]:
-        """Iterate over rows of the grid.
+        """Iterate over rows of the grid. Returned rows are mutable.
 
         Yields:
             list[T]: Each row of the grid.
@@ -56,27 +59,23 @@ class Grid(Generic[T]):
         return iter(self._data)
 
     @classmethod
-    def parse(cls, grid: str, delim: str | None = None, converter: Callable[[str], T] | None = None) -> Self:
+    def parse(cls, grid: str, delim: str | None = None) -> "Grid[str]":
         """Parse and return the grid.
 
         Args:
             grid (str): Content to parse.
             delim (str | None): Delimiter to split on. Not provided splits on each character.
-            converter (Callable[[str], T]): Convert the content into a desired type.
 
         Returns:
-            list[list[T]]: Parsed grid.
+            Grid[str]: Parsed grid.
         """
-        content: list[str] = grid.strip().splitlines()
-        data: list[list[str]] = [line.split(delim) if delim is not None else list(line) for line in content]
-
-        if converter is not None:
-            return cls(data=[[converter(cell) for cell in row] for row in data])  # type: ignore[arg-type]
-
-        return cls(data=data)  # type: ignore[arg-type]
+        data: list[list[str]] = [
+            line.split(delim) if delim is not None else list(line) for line in grid.strip().splitlines()
+        ]
+        return Grid(data=data)
 
     @classmethod
-    def parse_file(cls, file: str, delim: str | None = None, converter: Callable[[str], T] | None = None) -> Self:
+    def parse_file(cls, file: str, delim: str | None = None) -> "Grid[str]":
         """Parse file and return the grid.
 
         Args:
@@ -85,15 +84,13 @@ class Grid(Generic[T]):
             converter (Callable[[str], T]): Convert the content into a desired type.
 
         Returns:
-            list[list[str]]: Parsed grid.
+            Grid[str]: Parsed grid.
         """
-        content: list[str] = open(file, "r").read().strip().splitlines()
-        data: list[list[str]] = [line.split(delim) if delim is not None else list(line) for line in content]
+        data: list[list[str]] = []
+        with open(file, "r") as f:
+            [line.split(delim) if delim is not None else list(line) for line in f.read().strip().splitlines()]
 
-        if converter is not None:
-            return cls(data=[[converter(cell) for cell in row] for row in data])  # type: ignore[arg-type]
-
-        return cls(data=data)  # type: ignore[arg-type]
+        return Grid(data=data)
 
     def as_raw(self) -> list[list[T]]:
         """Get the raw grid.
@@ -218,8 +215,7 @@ class Grid(Generic[T]):
         Returns:
             bool: Value position or not.
         """
-        height, width = self.dimensions()
-        return 0 <= row < height and 0 <= col < width
+        return 0 <= row < self.height and 0 <= col < self.width
 
     def dimensions(self) -> tuple[int, int]:
         """Get the dimensions of the grid.
@@ -230,7 +226,7 @@ class Grid(Generic[T]):
         if not self._data:
             return 0, 0
 
-        return len(self._data), len(self._data[0]) if self._data else 0
+        return self.height, self.width
 
     def get(self, row: int, col: int, default: Any = None) -> Any:
         """Get the element in the grid at position (`row`, `col`). Safely checks bounds.
@@ -272,25 +268,31 @@ class Grid(Generic[T]):
                     return x, y
         return None
 
-    def find_all(self, value: T) -> list[tuple[int, int]]:
+    def find_all(self, value: T) -> Iterable[tuple[int, int]]:
         """Traverse the grid to find the all instances of `value`, returning an iterable of all positions.
 
         Args:
             value (T): Value to search for.
 
         Returns:
-            list[tuple[int, int]]: Iterable of all found positions of the target value.
+            Iterable[tuple[int, int]]: Iterable of all found positions of the target value.
         """
-        res: list[tuple[int, int]] = []
-
         for x, row in enumerate(self._data):
             for y, cell in enumerate(row):
                 if cell == value:
-                    res.append((x, y))
+                    yield x, y
 
-        return res
+    def positions(self) -> Iterable[tuple[int, int]]:
+        """Get an iterable of all the positions in the grid.
 
-    def get_neighbours(self, row: int, col: int, include_diagonals: bool = False) -> list[tuple[int, int]]:
+        Returns:
+            Iterable[tuple[int, int]]: All positions in the grid.
+        """
+        for x in range(self.height):
+            for y in range(self.width):
+                yield x, y
+
+    def get_neighbours(self, row: int, col: int, include_diagonals: bool = False) -> Iterable[tuple[int, int]]:
         """Get the positions all of neighbouring cells.
 
         Args:
@@ -299,10 +301,8 @@ class Grid(Generic[T]):
             include_diagonals (bool): Include diagonal neighbours.
 
         Returns:
-            list[tuple[int, int]]: All neighbouring cell positions.
+            Iterable[tuple[int, int]]: All neighbouring cell positions.
         """
-        res: list[tuple[int, int]] = []
-
         directions: list[tuple[int, int]] = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         if include_diagonals:
             directions += [(-1, -1), (-1, 1), (1, -1), (1, 1)]
@@ -311,9 +311,7 @@ class Grid(Generic[T]):
             new_x, new_y = row + dx, col + dy
 
             if self._is_valid(new_x, new_y):
-                res.append((new_x, new_y))
-
-        return res
+                yield new_x, new_y
 
     def flatten(self, func: Callable[[T], T] = lambda x: x) -> list[T]:
         """Flatten the grid into a single list.
@@ -399,7 +397,7 @@ class ComplexGrid(Generic[T]):
             key (tuple[int, int]): Grid position to access.
             value (T): Value to set.
         """
-        if not self._data.get(key, None):
+        if key not in self._data:
             raise KeyError(f"Position `{key}` does not exist.")
 
         self._data[key] = value
@@ -421,16 +419,15 @@ class ComplexGrid(Generic[T]):
         return iter(self._data)
 
     @classmethod
-    def parse(cls, grid: str, delim: str | None = None, converter: Callable[[str], T] | None = None) -> Self:
+    def parse(cls, grid: str, delim: str | None = None) -> "ComplexGrid[str]":
         """Parse and return the grid.
 
         Args:
             grid (str): Content to parse.
             delim (str | None): Delimiter to split on. Not provided splits on each character.
-            converter (Callable[[str], T]): Convert the content into a desired type.
 
         Returns:
-            list[list[str]]: Parsed grid.
+            ComplexGrid[str]: Parsed grid.
         """
         res: dict[complex, str] = {}
 
@@ -438,22 +435,18 @@ class ComplexGrid(Generic[T]):
             for y, cell in enumerate(row.strip().split(delim) if delim is not None else row.strip()):
                 res[complex(x, y)] = cell
 
-        if converter is not None:
-            return cls(data={k: converter(v) for k, v in res})  # type: ignore[arg-type]
-
-        return cls(data=res)  # type: ignore[arg-type]
+        return ComplexGrid(data=res)
 
     @classmethod
-    def parse_file(cls, file: str, delim: str | None = None, converter: Callable[[str], T] | None = None) -> Self:
+    def parse_file(cls, file: str, delim: str | None = None) -> "ComplexGrid[str]":
         """Parse file and return the grid.
 
         Args:
             file (str): File to parse.
             delim (str | None): Delimiter to split on. Not provided splits on each character.
-            converter (Callable[[str], T]): Convert the content into a desired type.
 
         Returns:
-            list[list[str]]: Parsed grid.
+            ComplexGrid[str]: Parsed grid.
         """
         res: dict[complex, str] = {}
 
@@ -462,10 +455,7 @@ class ComplexGrid(Generic[T]):
                 for y, cell in enumerate(row.strip().split(delim) if delim is not None else row.strip()):
                     res[complex(x, y)] = cell
 
-        if converter is not None:
-            return cls(data={k: converter(v) for k, v in res})  # type: ignore[arg-type]
-
-        return cls(data=res)  # type: ignore[arg-type]
+        return ComplexGrid(data=res)
 
     def as_raw(self) -> dict[complex, T]:
         """Get the data of the grid.
@@ -486,7 +476,7 @@ class ComplexGrid(Generic[T]):
 
         return grid
 
-    def get_neighbours(self, index: complex, include_diagonals: bool = False) -> list[complex]:
+    def get_neighbours(self, index: complex, include_diagonals: bool = False) -> Iterable[complex]:
         """Get the positions all of neighbouring cells.
 
         Args:
@@ -494,10 +484,8 @@ class ComplexGrid(Generic[T]):
             include_diagonals (bool): Include diagonal neighbours.
 
         Returns:
-            list[complex]: All neighbouring cell positions.
+            Iterable[complex]: All neighbouring cell positions.
         """
-        res: list[complex] = []
-
         directions: list[tuple[int, int]] = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         if include_diagonals:
             directions += [(-1, -1), (-1, 1), (1, -1), (1, 1)]
@@ -506,9 +494,7 @@ class ComplexGrid(Generic[T]):
             new_index: complex = index + complex(dx, dy)
 
             if new_index in self._data:
-                res.append(new_index)
-
-        return res
+                yield new_index
 
     def find(self, value: T) -> complex | None:
         """Traverse the grid to find the first instance of `value`, returning the position of the element.
@@ -524,7 +510,7 @@ class ComplexGrid(Generic[T]):
                 return k
         return None
 
-    def find_all(self, value: T) -> list[complex]:
+    def find_all(self, value: T) -> Iterable[complex]:
         """Traverse the grid to find the all instances of `value`, returning an iterable of all positions.
 
         Args:
@@ -533,7 +519,9 @@ class ComplexGrid(Generic[T]):
         Returns:
             list[complex]: Iterable of all found positions of the target value.
         """
-        return [k for k, v in self._data.items() if v == value]
+        for k, v in self._data.items():
+            if v == value:
+                yield k
 
     def map(self, func: Callable[[T], U]) -> "ComplexGrid[U]":
         """Apply function to each cell.
